@@ -1,10 +1,9 @@
-# Moonshot-scanner
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Approval Catalyst Tracker</title>
+  <title>Moon Shot Scanner</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -38,6 +37,45 @@
       max-width: 1400px;
       margin: 0 auto;
       padding: 24px;
+    }
+
+    .nav-bar {
+      background: #111118;
+      border-bottom: 1px solid #1e1e2e;
+      padding: 16px 0;
+      margin-bottom: 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-link {
+      font-size: 12px;
+      color: #e8e8f0;
+      text-decoration: none;
+      padding: 8px 12px;
+      border: 1px solid #1e1e2e;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .nav-link:hover {
+      border-color: #e8ff47;
+      color: #e8ff47;
+    }
+
+    .nav-divider {
+      color: #1e1e2e;
     }
 
     .header {
@@ -285,10 +323,18 @@
   </style>
 </head>
 <body>
+  <div class="nav-bar">
+    <div class="nav-container">
+      <a href="https://nysetracker.com" target="_blank" class="nav-link">NYSE TRACKER</a>
+      <span class="nav-divider">|</span>
+      <a href="https://mc-mcjiggles.github.io/nyseturnarounds" target="_blank" class="nav-link">SIGNAL MONITOR</a>
+    </div>
+  </div>
+
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1>APPROVAL CATALYST TRACKER</h1>
+      <h1>MOON SHOT SCANNER</h1>
       <p>Real companies waiting for government approval. Real investor backing. Real catalysts.</p>
       <p>This is informational only. No predictions. No promises. Just data for people monitoring approval timelines.</p>
     </div>
