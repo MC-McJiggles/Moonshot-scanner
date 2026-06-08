@@ -1,1 +1,608 @@
 # Moonshot-scanner
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval Catalyst Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #111118;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1e1e2e;
+      border-radius: 3px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #e8ff47;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: #cbd5e1;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .header p:last-child {
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .table-wrapper {
+      background: #111118;
+      border: 1px solid #1e1e2e;
+      border-radius: 12px;
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 400px);
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 120px 160px 130px 130px 160px 160px 100px auto 100px;
+      gap: 0;
+      padding: 16px;
+      border-bottom: 1px solid #1e1e2e;
+      background: #16161f;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: #e8ff47;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-width: 1280px;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 120px 160px 130px 130px 160px 160px 100px auto 100px;
+      gap: 0;
+      padding: 14px 16px;
+      border-bottom: 1px solid #1e1e2e;
+      cursor: pointer;
+      transition: background 0.15s;
+      background: #111118;
+      min-width: 1280px;
+    }
+
+    .table-row:hover {
+      background: #16161f;
+    }
+
+    .table-row.expanded {
+      background: #16161f;
+    }
+
+    .cell-ticker {
+      font-size: 18px;
+      font-weight: 700;
+      position: sticky;
+      left: 0;
+      background: inherit;
+      z-index: 10;
+      padding-right: 16px;
+    }
+
+    .table-header .cell-ticker {
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 21;
+      background: #16161f;
+    }
+
+    .cell-company {
+      font-size: 11px;
+      color: #e8e8f0;
+    }
+
+    .cell-sector {
+      font-size: 11px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .cell-market-cap {
+      font-size: 11px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .cell-current {
+      font-size: 11px;
+      color: #39ff8f;
+      font-weight: 700;
+    }
+
+    .cell-waiting {
+      font-size: 11px;
+      color: #ffd166;
+      font-weight: 700;
+    }
+
+    .cell-body {
+      font-size: 10px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .cell-backing {
+      font-size: 11px;
+      color: #e8e8f0;
+      font-weight: 500;
+    }
+
+    .cell-price {
+      font-size: 11px;
+      color: #e8e8f0;
+      font-weight: 700;
+    }
+
+    .expanded-row {
+      padding: 20px 16px;
+      background: #16161f;
+      border-bottom: 1px solid #1e1e2e;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .expanded-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .expanded-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #e8ff47;
+      letter-spacing: 0.1em;
+    }
+
+    .expanded-content {
+      font-size: 11px;
+      color: #e8e8f0;
+      line-height: 1.6;
+    }
+
+    .investor-item {
+      font-size: 10px;
+      color: #e8e8f0;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .investor-name {
+      font-weight: 700;
+      color: #39ff8f;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .investor-amount {
+      color: #cbd5e1;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .investor-source {
+      color: #cbd5e1;
+      display: block;
+    }
+
+    .investor-source a {
+      color: #22d3ee;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .investor-source a:hover {
+      text-decoration: underline;
+    }
+
+    .collapse-hint {
+      font-size: 9px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding: 16px;
+      background: #111118;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .footer-title {
+      font-weight: 700;
+      color: #e8ff47;
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1200px) {
+      .table-header, .table-row {
+        grid-template-columns: 70px 100px 80px 80px 100px 100px 70px 1fr 70px;
+        font-size: 9px;
+      }
+
+      .table-header {
+        padding: 12px;
+      }
+
+      .table-row {
+        padding: 10px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>APPROVAL CATALYST TRACKER</h1>
+      <p>Real companies waiting for government approval. Real investor backing. Real catalysts.</p>
+      <p>This is informational only. No predictions. No promises. Just data for people monitoring approval timelines.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <div class="table-header">
+        <div>TICKER</div>
+        <div>COMPANY</div>
+        <div>SECTOR</div>
+        <div>MARKET CAP</div>
+        <div>CURRENT APPROVALS</div>
+        <div>WAITING FOR</div>
+        <div>BODY</div>
+        <div>INVESTOR BACKING</div>
+        <div>PRICE</div>
+      </div>
+
+      <div id="table-body"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-title">COMPREHENSIVE LEGAL DISCLAIMER & DISCLOSURE</div>
+      <p>
+        <strong>FIRST AMENDMENT NOTICE.</strong> This website and all content contained herein are protected speech under the First Amendment to the United States Constitution. The authors, contributors, and operators of this platform assert their constitutional right to present factual research, analysis, commentary, and opinions regarding publicly available information without fear of governmental censorship, suppression, or prior restraint. Nothing in this disclaimer shall be construed as a waiver of any constitutional rights or protections afforded under the First Amendment, and all content herein is presented in the exercise of those inalienable rights.
+      </p>
+      <p>
+        <strong>EDUCATIONAL AND INFORMATIONAL PURPOSE ONLY.</strong> This website is provided exclusively for educational, informational, and research purposes only. The content, data, analysis, commentary, and research contained on this platform are intended solely to educate visitors about publicly available information, regulatory processes, market dynamics, and investment concepts. This platform is not, and shall not be construed as, an offer to sell, a solicitation to buy, or a recommendation to purchase any security, financial instrument, or investment product. The provision of information on this website does not constitute financial advice, investment advice, legal advice, tax advice, or professional advice of any kind.
+      </p>
+      <p>
+        <strong>NOT INVESTMENT ADVICE — REPEATED FOR EMPHASIS.</strong> Under absolutely no circumstances should any content on this website be interpreted, construed, understood, deemed, or accepted as investment advice, financial advice, a recommendation to buy or sell any security, a recommendation to trade any financial instrument, or a suggestion to take any action related to your portfolio, investments, or financial situation. The authors and operators of this website explicitly disclaim any and all responsibility for investment decisions made by any person who may have read, viewed, or interacted with this website. Any and all investment decisions are the sole responsibility of the individual making such decisions, and such individuals are solely liable for any losses, damages, or adverse outcomes resulting from such decisions.
+      </p>
+      <p>
+        <strong>NO FINANCIAL ADVISOR RELATIONSHIP.</strong> Nothing on this website creates, implies, suggests, or establishes any fiduciary relationship, advisory relationship, or client relationship between the website operators and any visitor or user. The information presented is not tailored to the specific financial situation, risk tolerance, investment objectives, time horizon, tax situation, or personal circumstances of any individual. No person should rely on this website as a substitute for professional financial, legal, or tax advice from a qualified advisor licensed in their jurisdiction. Visitors are strongly encouraged to consult with licensed financial advisors, attorneys, tax professionals, and other qualified professionals before making any investment decisions.
+      </p>
+      <p>
+        <strong>RISKS OF INVESTING — SUBSTANTIAL AND SIGNIFICANT.</strong> All investing involves substantial risk of loss. Securities, financial instruments, and investment products can lose value rapidly, unpredictably, and catastrophically. An investor may lose part or all of their investment. Past performance is absolutely not indicative of future results. Hypothetical returns, projected returns, estimated returns, and backtested returns are not guarantees of future performance and may be materially different from actual future results. Market conditions change. Economic conditions change. Regulatory conditions change. Competitive conditions change. Company fundamentals change. Stock prices change. Valuations change. Sentiment changes. Everything changes. Investors should never assume that historical patterns will repeat, that correlations will persist, that trends will continue, or that any observed relationship will remain stable.
+      </p>
+      <p>
+        <strong>APPROVAL CATALYSTS ARE NOT GUARANTEES.</strong> This website discusses companies waiting for regulatory approval or government decisions. Approvals may be delayed, denied, rejected, or reversed. Timelines are subject to change at any time for any reason. Even if approval is granted, the resulting business outcome may be worse than expected, the market may price in the approval before it occurs, the stock may fall after approval, or competitive or market conditions may prevent the company from achieving success. Approval of one product, service, or facility does not guarantee approval of others. A regulatory approval in one jurisdiction does not guarantee approval in other jurisdictions. Approval does not guarantee profitability, revenue growth, market adoption, or stock price appreciation. Companies approved by regulators routinely fail, underperform, go bankrupt, or destroy shareholder value.
+      </p>
+      <p>
+        <strong>DATA ACCURACY AND LIMITATIONS.</strong> All data, dates, company information, investor amounts, and regulatory timelines presented on this website are compiled from publicly available sources including SEC filings, press releases, news reports, regulatory announcements, and third-party databases. The accuracy of this data is not guaranteed. Data may be incomplete, outdated, inaccurate, or superseded. Sources may contain errors. Interpretation of sources may be mistaken. Data may have been updated since this website's last refresh. Investors should independently verify all information directly from original SEC filings, official regulatory documents, and company announcements before relying on any information presented herein. The authors and operators of this website disclaim all responsibility for errors, omissions, inaccuracies, or misinterpretations of data.
+      </p>
+      <p>
+        <strong>NO WARRANTIES OR REPRESENTATIONS.</strong> All content on this website is provided on an "as-is" and "as-available" basis without any warranty of any kind, express or implied. The authors and operators disclaim all warranties including merchantability, fitness for a particular purpose, non-infringement, accuracy, completeness, reliability, or timeliness. No warranty is made that the website will be error-free, uninterrupted, secure, or free of malware. No warranty is made regarding the accuracy, completeness, or usefulness of any information, analysis, or commentary. No warranty is made that any information will be updated in a timely manner or at all.
+      </p>
+      <p>
+        <strong>AI-GENERATED CONTENT DISCLOSURE.</strong> All content on this website has been generated, assisted, enhanced, or modified using artificial intelligence technology provided by Anthropic. AI-generated content may contain errors, hallucinations, misinterpretations, logical inconsistencies, factual inaccuracies, or misleading analysis. Large language models are known to make mistakes, confidently state false information, misremember facts, and produce plausible-sounding but incorrect conclusions. Users should never assume that AI-generated content is accurate, reliable, or free from error. All AI-generated content should be independently verified against primary sources. The use of AI technology in content generation does not increase the reliability, accuracy, or trustworthiness of the information presented.
+      </p>
+      <p>
+        <strong>MARKET RISK, LIQUIDITY RISK, AND EXECUTION RISK.</strong> Securities discussed on this website may be subject to significant volatility, low liquidity, wide bid-ask spreads, and limited trading volume. Investors may be unable to sell their positions, may be forced to sell at substantial losses to exit positions, or may face significant delays in execution. Small-cap stocks, penny stocks, and thinly-traded securities are particularly prone to volatility, manipulation, and sudden price swings unrelated to fundamentals. The absence of a buyer may prevent an investor from selling. Wide spreads between bid and ask prices may mean that selling at any price requires accepting a substantial discount. Market hours may be limited. Trading halts may occur. Circuit breakers may halt trading. None of these events are guaranteed to allow an investor to exit a position at a reasonable price or at all.
+      </p>
+      <p>
+        <strong>REGULATORY RISK AND LEGAL RISK.</strong> All companies discussed on this website are subject to regulatory oversight, government action, litigation, enforcement proceedings, and policy changes that may adversely affect their business operations, profitability, stock price, or continued existence as a going concern. Regulatory agencies may change their stance, reverse previous approvals, impose new requirements, increase enforcement actions, or shut down operations. Laws and regulations may change. Tax treatment may change. Environmental requirements may change. Labor regulations may change. Trade policy may change. Tariffs may be imposed or removed. Subsidies may be eliminated. Government contracts may be cancelled. Government support may be withdrawn. None of these outcomes are predictable or controllable by investors.
+      </p>
+      <p>
+        <strong>CONGRESSIONAL AND POLITICAL RISK.</strong> This website discusses companies that may benefit from specific government policies, congressional actions, or administrative decisions. Political environments change. Elections change outcomes. Personnel changes priorities. Policy reversals eliminate support. Congressional majorities shift. Administration priorities shift. International relations shift. Geopolitical events create uncertainty. What is politically advantageous today may be politically disadvantageous tomorrow. Government support for one industry may be replaced with opposition. Subsidies may be eliminated. Tax benefits may be revoked. Protective tariffs may be removed. The political support for any company, industry, or policy is never guaranteed to persist, continue, or remain stable.
+      </p>
+      <p>
+        <strong>COMPETITIVE RISK, TECHNOLOGY RISK, AND DISRUPTION RISK.</strong> Companies waiting for approval may face new competitors, disruptive technologies, changing market preferences, or business model obsolescence. Approval may come too late. By the time regulatory approval is granted, market conditions may have shifted, competitors may have established dominant positions, or technological changes may have rendered the company's product or service obsolete or uncompetitive. First-mover advantage may be lost. Market adoption may be slower than expected. Customers may choose competitors. Pricing pressure may eliminate profitability. New entrants may disrupt markets. Technology may leapfrog current approaches. None of these risks are reflected in regulatory approval status.
+      </p>
+      <p>
+        <strong>EXECUTION RISK, CAPITAL RISK, AND OPERATIONAL RISK.</strong> Even companies with regulatory approval may fail to execute their business plans, may run out of capital, may be unable to raise additional funding, may face operational challenges, may suffer from poor management, may experience equipment failures, may face supply chain disruptions, may be unable to scale operations, or may be unable to achieve profitability. Regulatory approval does not guarantee business success. Regulatory approval does not guarantee that a company will execute its plans competently. Regulatory approval does not guarantee that markets will adopt the product or service. Regulatory approval does not guarantee that the company will remain solvent. Regulatory approval does not guarantee that the company will achieve profitability. Regulatory approval does not guarantee that investors will make money.
+      </p>
+      <p>
+        <strong>SECTOR-SPECIFIC RISKS.</strong> Companies in the aerospace and aviation sector face extreme regulatory requirements, long development cycles, certification challenges, manufacturing risks, and supply chain vulnerabilities. Companies in the biotechnology and pharmaceutical sector face clinical trial risks, regulatory approval risks, manufacturing risks, patent risks, competitive risks, and pricing risks. Companies in the mining and natural resources sector face commodity price volatility, environmental risks, permitting risks, political risks, geopolitical risks, and operational risks. Companies in the defense contracting sector face government policy risks, budgetary risks, congressional risks, and the risk of loss of contracts or funding. Each sector has unique risks not fully detailed herein.
+      </p>
+      <p>
+        <strong>CONFLICT OF INTEREST AND BIAS DISCLOSURE.</strong> The authors, operators, and contributors to this website may have financial interests in some or all of the companies, sectors, or investment themes discussed. The website operators may hold positions, may trade positions, may profit or lose based on movements in the securities discussed, and may have incentives to promote certain views or interpretations of information. Visitors should assume that potential conflicts of interest exist and should not rely solely on this website for unbiased analysis. The provision of this disclaimer does not eliminate or fully disclose all potential conflicts of interest.
+      </p>
+      <p>
+        <strong>NO OFFER OF SECURITIES OR INVESTMENT PRODUCTS.</strong> This website does not offer, sell, or solicit the purchase of any securities, investment products, funds, partnerships, or other financial instruments. No offer is made to any person to buy or sell any security. No solicitation is made to any person to invest capital in any venture. No registration statement has been filed with any securities regulator regarding any offering discussed or mentioned on this website. Any investment products or opportunities discussed are not registered, may not be registered, and may never be registered with any securities regulator.
+      </p>
+      <p>
+        <strong>SUITABILITY AND APPROPRIATENESS NOT DETERMINED.</strong> No determination has been made regarding the suitability or appropriateness of any investment discussed on this website for any particular individual, investor, entity, or group. Investments discussed may be completely inappropriate for some investors, may carry unacceptable risk levels for some investors, may have tax consequences unsuitable for some investors, or may conflict with the investment objectives or constraints of some investors. No investor should assume that any investment discussed is suitable, appropriate, or aligned with their financial goals, risk tolerance, time horizon, tax situation, or personal circumstances.
+      </p>
+      <p>
+        <strong>LIABILITY DISCLAIMER AND WAIVER.</strong> In no event shall the authors, operators, contributors, hosts, or distributors of this website be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising from the use of or reliance on any information presented on this website. This includes but is not limited to losses, damages from investment decisions, losses from trading, tax consequences, legal consequences, or any other adverse outcomes. By accessing and using this website, all visitors and users agree to assume all risks and waive all claims against the authors, operators, and distributors.
+      </p>
+      <p>
+        <strong>JURISDICTIONAL LIMITATIONS AND GEOGRAPHIC RESTRICTIONS.</strong> This website is operated in the United States and is subject to U.S. law. Laws in other jurisdictions may restrict or prohibit access to this website or the information presented. The information presented may not be available, legal, or appropriate for use in all jurisdictions. Some jurisdictions may classify certain statements as investment advice requiring registration or licensing. Users are responsible for determining whether access to this website is legal in their jurisdiction. Users are responsible for complying with all applicable laws, regulations, and restrictions in their jurisdiction.
+      </p>
+      <p>
+        <strong>TERMS OF USE AND BINDING ARBITRATION.</strong> By accessing this website, all users agree to be bound by these terms and disclaimers, agree that they have read and understood these disclaimers in their entirety, and agree that they assume all risks associated with the use of this website. All disputes arising from the use of this website are subject to binding arbitration under the rules of the American Arbitration Association and shall be resolved in [User's location - to be determined by applicable law]. Users waive the right to bring any claim before a court of law and agree that arbitration is the sole remedy for any dispute.
+      </p>
+      <p>
+        <strong>NO OBLIGATION TO UPDATE.</strong> This website is not updated in real time. Information presented may be outdated, obsolete, or superseded without notice. The website operators are under no obligation to update information, correct errors, or notify users of changes. Users should never assume that information on this website is current. Users should independently verify all information from real-time sources before making any decisions.
+      </p>
+      <p>
+        <strong>EFFECT OF DISCLAIMER.</strong> If any portion of this disclaimer is found to be unenforceable or void, all remaining portions shall remain in effect. This disclaimer is severable and does not affect the enforceability of any other provision. The failure of the website operators to enforce any portion of this disclaimer does not constitute a waiver of any rights. The website operators reserve the right to modify this disclaimer at any time without notice. Continued use of the website after modification constitutes acceptance of the modified disclaimer.
+      </p>
+      <p>
+        <strong>FURTHER DISCLAIMERS ON THE DISCLAIMERS.</strong> This disclaimer does not constitute legal advice and should not be relied upon as a substitute for advice from a qualified attorney licensed in your jurisdiction. The adequacy, completeness, or enforceability of this disclaimer is not guaranteed. Securities regulators in some jurisdictions may not recognize or enforce this disclaimer. Some courts may find portions of this disclaimer unenforceable or void as against public policy. This disclaimer may not protect the website operators or users from all legal liability in all jurisdictions. Users should consult with a qualified attorney regarding the enforceability and effect of this disclaimer in their jurisdiction.
+      </p>
+      <p>
+        <strong>FINAL NOTICE: RESTATEMENT OF PRIMARY DISCLAIMER.</strong> To reiterate in the clearest possible terms: This website is not investment advice. The information presented does not constitute a recommendation to buy, sell, or trade any security. Past performance does not guarantee future results. All investing involves risk of loss. You could lose all of your money. You should consult with licensed professionals before making any investment decisions. The authors and operators of this website are not responsible for any losses, damages, or adverse outcomes resulting from use of this website. By using this website, you assume all risks and waive all claims. This disclaimer is incorporated by reference into all content, commentary, analysis, and research presented on this website.
+      </p>
+      <p style="margin-top: 16px; font-size: 10px; color: #94a3b8;">
+        <strong>Website Operated By:</strong> Independent Financial Research Platform | <strong>AI Assistance:</strong> Claude / Anthropic | <strong>Data Sources:</strong> SEC EDGAR, Official Government Announcements, Public Press Releases | <strong>Last Updated:</strong> June 2026 | <strong>Jurisdiction:</strong> United States
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const companies = [
+      {
+        id: 'JOBY',
+        ticker: 'JOBY',
+        company: 'Joby Aviation',
+        sector: 'Aviation/eVTOL',
+        marketCap: '~$1-2B',
+        currentApprovals: 'None (pre-certification)',
+        waitingFor: 'FAA Type Certification',
+        regulatoryBody: 'FAA',
+        investorBacking: 'Toyota: $894M | SK Telecom: $100M | Intel Capital: $100M',
+        currentPrice: '~$6.50',
+        whatUnlocks: 'Commercial air taxi operations in US & international markets (Dubai, Saudi Arabia). FAA certification enables revenue generation from passenger service.',
+        fullInvestors: [
+          { name: 'Toyota Motor Corporation', amount: '$894M', source: 'https://www.jobyaviation.com/news/toyota-to-invest-500-million-in-joby-aviation/' },
+          { name: 'SK Telecom', amount: '$100M', source: 'https://www.jobyaviation.com/news/joby-welcomes-investment-expands-partnership-sk-telecom/' },
+          { name: 'Intel Capital', amount: '$100M (2018)', source: 'Series B Financing' },
+          { name: 'Capricorn Investment Group', amount: '$30M (2016)', source: 'Series A Financing' },
+          { name: 'Delta Air Lines', amount: 'Strategic partnership', source: 'Post-IPO investment' },
+          { name: 'Uber', amount: 'Strategic (Elevate integration)', source: 'Acquired Uber Elevate division 2020' },
+          { name: 'JetBlue Technology Ventures', amount: 'Series B investor', source: 'Feb 2018' },
+          { name: 'SPARX Group', amount: 'Series C investor', source: 'Jan 2020' },
+          { name: 'Oryx (Qatar)', amount: 'Series C investor', source: 'Jan 2020' },
+          { name: 'State of California', amount: 'Grant funding', source: 'Nov 2023' }
+        ],
+        regulatoryStatus: 'Stage 4 of 5 completed (as of Nov 2025). Type Inspection Authorization granted. Final Type Certification decision expected late 2025 or early 2026. FAA integration pilot program approved.',
+        notes: 'Company holding $1B+ cash as of Q2 2025. Manufacturing facility expansion in Dayton, Ohio. Commercial agreements with United Airlines, Uber integration pre-orders from multiple airlines globally.'
+      },
+      {
+        id: 'ACHR',
+        ticker: 'ACHR',
+        company: 'Archer Aviation',
+        sector: 'Aviation/eVTOL',
+        marketCap: '~$500M-$1B',
+        currentApprovals: 'FAA Certificate to Fly granted (June 2023)',
+        waitingFor: 'FAA Type Certification for commercial ops',
+        regulatoryBody: 'FAA',
+        investorBacking: 'Stellantis: $204M+ | Boeing | United Airlines | ARK Invest',
+        currentPrice: '~$6.52',
+        whatUnlocks: 'Commercial operations timeline accelerated. 2028 LA Olympics partnership contingent on certification. Stellantis manufacturing partnership worth up to $400M in scale production support.',
+        fullInvestors: [
+          { name: 'Stellantis N.V.', amount: '$110M (2023) + $55M (July 2024) + $39M open market (2024) = ~$204M', source: 'https://www.stellantis.com/en/news/press-releases/2024/july/stellantis-invests-additional-55-million-in-archer-following-recent-flight-test-milestone/' },
+          { name: 'Boeing', amount: 'Part of $215M Series funding', source: 'https://www.sec.gov/Archives/edgar/data/0001824502/000162828023028928/exhibit_991.htm' },
+          { name: 'United Airlines', amount: 'Strategic investor + partnership', source: 'Aug 2024 $175M round' },
+          { name: 'ARK Investment Management', amount: 'Series 2023 investor', source: 'Q2 2023 funding' },
+          { name: 'Institutional investors', amount: '$175M additional (Aug 2024)', source: 'Moelis placement agent' }
+        ],
+        regulatoryStatus: 'Transitioned to manufacturing phase. Covington, GA facility under construction (completion expected late 2026). Certified to fly prototype. Type Certification pathway on track for 2026 decision.',
+        notes: 'Total funding to date: $1.1B+. Paid $126M for Hawthorne Airport (LA hub). Stellantis manufacturing commitment $400M over production ramp. Olympics target 2028 contingent on certification by that date.'
+      },
+      {
+        id: 'LRMR',
+        ticker: 'LRMR',
+        company: 'Larimar Therapeutics',
+        sector: 'Biotechnology/Pharma',
+        marketCap: '~$300-500M',
+        currentApprovals: 'FDA Breakthrough Therapy Designation (Feb 2024)',
+        waitingFor: 'FDA approval for nomlabofusp (Friedreich\'s Ataxia)',
+        regulatoryBody: 'FDA',
+        investorBacking: 'Public offering Feb 2026: $100M | Feb 2024: $161.8M',
+        currentPrice: '~$5.00',
+        whatUnlocks: 'FDA accelerated approval targets H1 2027 commercial launch. $100M+ in recent capital extends runway into Q2 2027. Orphan drug status de-risks commercialization in rare disease segment.',
+        fullInvestors: [
+          { name: 'Public Offering (Feb 2026)', amount: '$100M gross ($107.6M net after underwriter option)', source: 'https://investors.larimartx.com/news-releases/news-release-details/larimar-therapeutics-announces-pricing-upsized-100-million' },
+          { name: 'Underwriters - J.P. Morgan Securities', amount: 'Lead underwriter Feb 2026', source: 'Joint bookrunner' },
+          { name: 'Underwriters - Guggenheim Securities', amount: 'Joint bookrunner Feb 2026', source: 'Syndicate member' },
+          { name: 'Public Offering (Feb 2024)', amount: '$161.8M net proceeds', source: 'Previous capital raise' },
+          { name: 'Institutional healthcare investors', amount: 'Syndicate participants', source: 'Multiple rounds' }
+        ],
+        regulatoryStatus: 'BLA (Biologics License Application) submission planned June 2026 under accelerated approval pathway. FDA Breakthrough Therapy, Fast Track, Orphan Drug, and Rare Pediatric Disease designations all granted. Phase 3 trial initiation Q2 2026.',
+        notes: 'Cash position Dec 2025: $136.9M. Feb 2026 offering added $107.6M net. Projected runway into Q2 2027. Lead compound nomlabofusp targets Friedreich\'s ataxia (rare neurological disease). First-of-kind approval potential for FXN biomarker.'
+      },
+      {
+        id: 'SLRS',
+        ticker: 'SLRS',
+        company: 'Solaris Resources',
+        sector: 'Mining/Copper',
+        marketCap: '~$1B+',
+        currentApprovals: 'EIA technical approval (Q4 2025)',
+        waitingFor: 'Ecuador full mining exploitation approval / FPIC consultation',
+        regulatoryBody: 'Ecuador Ministry of Environment',
+        investorBacking: 'Royal Gold: $200M financing agreement',
+        currentPrice: '~$3-4 CAD',
+        whatUnlocks: 'Full permitting expected end of 2026. Warintza project becomes production-ready for development decision. $200M non-dilutive funding covers all derisking activities.',
+        fullInvestors: [
+          { name: 'Royal Gold Inc. (gold stream + NSR royalty)', amount: '$200M total ($100M immediate, $50M post-PFS/EIA, $50M one year anniversary)', source: 'https://www.globenewswire.com/news-release/2025/05/21/3085547/0/en/Solaris-Enters-into-US-200-Million-Financing-Agreements-with-Royal-Gold-to-Advance-the-Warintza-Project.html' },
+          { name: 'Institutional equity investors', amount: 'Various rounds', source: 'TSX/NYSE listed' }
+        ],
+        regulatoryStatus: 'EIA technical approval received Q4 2025. Free Prior and Informed Consultation (FPIC) process underway with Ecuador government. Full mining exploitation approval targeted end of 2026. Final Investment Decision (FID) expected post-permitting.',
+        notes: 'Warintza is tier-1 copper-gold deposit (one of few remaining near-term global scale copper assets not controlled by major). Non-dilutive funding retains shareholder exposure to exploration upside in Warintza district. Royal Gold stream: small percentage of gold over life of mine. NSR royalty: modest percentage of net smelter revenue.'
+      },
+      {
+        id: 'UURAF',
+        ticker: 'UURAF',
+        company: 'Ucore Rare Metals',
+        sector: 'Critical Minerals/Defense',
+        marketCap: '~$100-300M',
+        currentApprovals: 'US DoD Phase 1 project completion ($4M + $1.1M additional)',
+        waitingFor: 'US DoD Phase 2 production-scale deployment approval',
+        regulatoryBody: 'US Department of Defense',
+        investorBacking: 'US DoD: $18.4M Phase 2 award (non-repayable)',
+        currentPrice: '~$0.80-1.50 CAD',
+        whatUnlocks: 'Domestic rare earth processing capability reduces US dependence on China (critical materials). Production-ready Louisiana facility breaks China\'s HREE supply control. Government-validated geopolitical importance.',
+        fullInvestors: [
+          { name: 'US Department of Defense - Phase 2 Award', amount: '$18.4M Phase 2 (non-repayable)', source: 'https://ucore.com/ucore-launches-us-department-of-defense-funded-18-4-million-commercial-rare-earth-refining-project/' },
+          { name: 'US Department of Defense - Phase 1', amount: '$4M Phase 1 + $1.1M successful milestone payment', source: 'Earlier award completion' },
+          { name: 'US Army Contracting Command-Orlando', amount: 'Total OT Agreement: $22.4M', source: 'https://ucore.com/ucore-executes-us18-4m-award-with-u-s-dod-for-rare-earth-processing/' },
+          { name: 'Other Transaction Agreement', amount: 'Non-repayable funding vehicle', source: 'Federal funding mechanism' }
+        ],
+        regulatoryStatus: 'Phase 2 project kickoff completed July 2025. Full-scale construction & early production Louisiana H2-2026. Demonstrating separation of critical HREEs (terbium, dysprosium) successfully completed. Technology transfer from Canadian demo facility to US commercial facility underway.',
+        notes: 'Ucore develops RapidSX™ rare earth separation technology. DOD funding de-risks commercialization. Bokan-Dotson Ridge Rare Heavy REE Project (Alaska, 100% owned) provides long-term feedstock optionality. China controls 85%+ of global rare earth processing — this breaks that monopoly for defense-critical elements.'
+      }
+    ];
+
+    const sectorColors = {
+      'Aviation/eVTOL': '#39ff8f',
+      'Biotechnology/Pharma': '#ffd166',
+      'Mining/Copper': '#ff4757',
+      'Critical Minerals/Defense': '#ff4757'
+    };
+
+    function getSectorColor(sector) {
+      return sectorColors[sector] || '#e8ff47';
+    }
+
+    function renderTable() {
+      const tableBody = document.getElementById('table-body');
+      tableBody.innerHTML = '';
+
+      companies.forEach(company => {
+        // Main row
+        const mainRow = document.createElement('div');
+        mainRow.className = 'table-row';
+        mainRow.innerHTML = `
+          <div class="cell-ticker" style="color: ${getSectorColor(company.sector)}">${company.ticker}</div>
+          <div class="cell-company">${company.company}</div>
+          <div class="cell-sector">${company.sector}</div>
+          <div class="cell-market-cap">${company.marketCap}</div>
+          <div class="cell-current">${company.currentApprovals}</div>
+          <div class="cell-waiting">${company.waitingFor}</div>
+          <div class="cell-body">${company.regulatoryBody}</div>
+          <div class="cell-backing">${company.investorBacking}</div>
+          <div class="cell-price">${company.currentPrice}</div>
+        `;
+
+        mainRow.addEventListener('click', () => toggleRow(company.id, mainRow));
+        tableBody.appendChild(mainRow);
+
+        // Expanded row (hidden by default)
+        const expandedRow = document.createElement('div');
+        expandedRow.id = `expanded-${company.id}`;
+        expandedRow.className = 'expanded-row hidden';
+        expandedRow.innerHTML = `
+          <div class="expanded-section">
+            <div class="expanded-label">WHAT UNLOCKS (IF APPROVED)</div>
+            <div class="expanded-content">${company.whatUnlocks}</div>
+          </div>
+
+          <div class="expanded-section">
+            <div class="expanded-label">REGULATORY STATUS & TIMELINE</div>
+            <div class="expanded-content">${company.regulatoryStatus}</div>
+          </div>
+
+          <div class="expanded-section">
+            <div class="expanded-label">FULL INVESTOR LIST (SOURCE URLs)</div>
+            <div class="expanded-content">
+              ${company.fullInvestors.map(investor => `
+                <div class="investor-item">
+                  <span class="investor-name">${investor.name}</span>
+                  <span class="investor-amount">Amount: ${investor.amount}</span>
+                  <span class="investor-source">Source: <a href="${investor.source}" target="_blank" rel="noopener noreferrer">${investor.source.length > 60 ? investor.source.substring(0, 60) + '...' : investor.source}</a></span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="expanded-section">
+            <div class="expanded-label">KEY NOTES</div>
+            <div class="expanded-content">${company.notes}</div>
+          </div>
+
+          <div class="collapse-hint">▲ collapse</div>
+        `;
+        tableBody.appendChild(expandedRow);
+      });
+    }
+
+    function toggleRow(id, mainRow) {
+      const expandedRow = document.getElementById(`expanded-${id}`);
+      const isExpanded = !expandedRow.classList.contains('hidden');
+
+      // Collapse all other rows
+      document.querySelectorAll('.expanded-row').forEach(row => {
+        row.classList.add('hidden');
+      });
+      document.querySelectorAll('.table-row').forEach(row => {
+        row.classList.remove('expanded');
+      });
+
+      // Toggle this row
+      if (!isExpanded) {
+        expandedRow.classList.remove('hidden');
+        mainRow.classList.add('expanded');
+      }
+    }
+
+    // Initialize
+    renderTable();
+  </script>
+</body>
+</html>
